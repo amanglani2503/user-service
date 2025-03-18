@@ -9,6 +9,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class AuthService {
     @Autowired
@@ -31,9 +33,10 @@ public class AuthService {
         Authentication authentication =
                 authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
 
-        if(authentication.isAuthenticated())
-            return jwtService.generateToken(user.getEmail());
-
+        if(authentication.isAuthenticated()) {
+            Optional<User> extractedUser = userRepository.findByEmail(user.getEmail());
+            return jwtService.generateToken(user.getEmail(), extractedUser.get().getRole());
+        }
         return "failed";
     }
 }
